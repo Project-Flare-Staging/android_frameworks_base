@@ -114,4 +114,5 @@ interface ILockSettings {
     String getPassword();
 // QTI_END: 2018-05-29: SecureSystems: frameworks: base: Port password retention feature
     boolean writeRepairModeCredential(int userId);
+    byte getLockPatternSize(int userId);
 }
