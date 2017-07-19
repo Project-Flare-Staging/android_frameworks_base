@@ -288,10 +288,14 @@ private class CellularIconViewModel(
                 iconInteractor.isInService,
             ) { networkTypeIconGroup, shouldShow, networkTypeIconCustomization, voWifiAvailable,
                 isInService ->
+                val shouldShowFourgIcon = iconInteractor.shouldShowFourgIcon.value
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
                 val desc =
-                    if (networkTypeIconGroup.contentDescription != 0)
-                        ContentDescription.Resource(networkTypeIconGroup.contentDescription)
+                    if (networkTypeIconGroup.contentDescription != 0) {
+                        var contDesc: Int = networkTypeIconGroup.contentDescription
+                        if (shouldShowFourgIcon) contDesc = convertLteToFourg(contDesc)
+                        ContentDescription.Resource(contDesc)
+                    }
                     else null
 // QTI_BEGIN: 2023-04-01: Android_UI: SystemUI: Readapt VoWifi icon
                 val icon =
@@ -300,9 +304,11 @@ private class CellularIconViewModel(
                     if (voWifiAvailable) {
                         Icon.Resource(TelephonyIcons.VOWIFI.dataType, desc)
                     } else {
-                        if (networkTypeIconGroup.iconId != 0)
-                            Icon.Resource(networkTypeIconGroup.iconId, desc)
-                        else null
+                        if (networkTypeIconGroup.iconId != 0) {
+                            var contIcon: Int = networkTypeIconGroup.iconId
+                            if (shouldShowFourgIcon) contIcon = convertLteToFourg(contIcon)
+                            Icon.Resource(contIcon, desc)
+                        } else null
                     }
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
                 return@combine when {
@@ -318,11 +324,37 @@ private class CellularIconViewModel(
                     }
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
                     !shouldShow -> null
+                    shouldShowFourgIcon ||
+                    !shouldShowFourgIcon -> icon
                     else -> icon
                 }
             }
             .distinctUntilChanged()
             .stateIn(scope, SharingStarted.WhileSubscribed(), null)
+
+    private fun convertLteToFourg(res: Int): Int {
+        when (res) {
+            com.android.settingslib.R.string.data_connection_lte,
+            com.android.settingslib.R.string.data_connection_4g_lte -> {
+                return com.android.settingslib.R.string.data_connection_4g as Int
+            }
+            com.android.settingslib.R.string.data_connection_lte_plus,
+            com.android.settingslib.R.string.data_connection_4g_lte_plus -> {
+                return com.android.settingslib.R.string.data_connection_4g_plus as Int
+            }
+            TelephonyIcons.ICON_LTE,
+            TelephonyIcons.ICON_4G_LTE -> {
+                return TelephonyIcons.ICON_4G as Int
+            }
+            TelephonyIcons.ICON_LTE_PLUS,
+            TelephonyIcons.ICON_4G_LTE_PLUS -> {
+                return TelephonyIcons.ICON_4G_PLUS as Int
+            }
+            else -> {}
+        }
+        return res
+    }
+
     override val networkTypeBackground =
         iconInteractor.showSliceAttribution
             .map {

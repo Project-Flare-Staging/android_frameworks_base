@@ -124,6 +124,8 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
 
     private static final String DATA_DISABLED_ICON =
             "system:" + Settings.System.DATA_DISABLED_ICON;
+    private static final String SHOW_FOURG_ICON =
+            "system:" + Settings.System.SHOW_FOURG_ICON;
 
     private boolean mDataDisabledIcon;
 
@@ -271,6 +273,11 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
                     TunerService.parseIntegerSwitch(newValue, true);
                 updateTelephony();
                 break;
+            case SHOW_FOURG_ICON:
+                mConfig = Config.readConfig(mContext);
+                setConfiguration(mConfig);
+                notifyListeners();
+                break;
             default:
                 break;
         }
@@ -358,6 +365,7 @@ public class MobileSignalController extends SignalController<MobileState, Mobile
         mConnectivityManager.registerNetworkCallback(request, mNetworkCallback);
 // QTI_END: 2023-07-12: Android_UI: SystemUI: Modify exclamation logic same as CR3503654 for ShadeCarrierGroupController
         mTunerService.addTunable(this, DATA_DISABLED_ICON);
+        mTunerService.addTunable(this, SHOW_FOURG_ICON);
     }
 
     /**

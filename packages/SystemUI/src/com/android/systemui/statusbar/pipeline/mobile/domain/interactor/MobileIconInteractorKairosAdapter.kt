@@ -63,6 +63,7 @@ fun BuildScope.MobileIconInteractorKairosAdapter(
             isVoWifiForceHidden = isVoWifiForceHidden.toColdConflatedFlow(kairosNetwork),
             isAllowedDuringAirplaneMode = isAllowedDuringAirplaneMode.toStateFlow(),
             carrierNetworkChangeActive = carrierNetworkChangeActive.toStateFlow(),
+            shouldShowFourgIcon = shouldShowFourgIcon.toStateFlow(),
         )
     }
 
@@ -91,6 +92,7 @@ private class MobileIconInteractorKairosAdapter(
     override val isVoWifiForceHidden: Flow<Boolean>,
     override val isAllowedDuringAirplaneMode: StateFlow<Boolean>,
     override val carrierNetworkChangeActive: StateFlow<Boolean>,
+    override val shouldShowFourgIcon: StateFlow<Boolean>,
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
 ) : MobileIconInteractor {
     override val isConnectionFailed = MutableStateFlow(false)
