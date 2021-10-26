@@ -85,7 +85,7 @@ public class CallbackHandlerTest extends SysuiTestCase {
         String description = "Test";
         String secondaryLabel = "Secondary label";
         WifiIndicators indicators = new WifiIndicators(
-                enabled, status, qs, in, out, description, true, secondaryLabel);
+                enabled, status, qs, in, out, description, true, secondaryLabel, true);
         mHandler.setWifiIndicators(indicators);
         waitForCallbacks();
 
@@ -119,8 +119,13 @@ public class CallbackHandlerTest extends SysuiTestCase {
         int subId = 5;
         boolean roaming = true;
         MobileDataIndicators indicators = new MobileDataIndicators(
+<<<<<<< HEAD
                 status, qs, type, qsType, in, out, 0, typeDescription,
                 typeDescriptionHtml, description, subId, roaming, true);
+=======
+                status, qs, type, qsType, in, out, typeDescription,
+                typeDescriptionHtml, description, subId, roaming, true, true);
+>>>>>>> a1d067647f63 (SystemUI: Allow Wi-Fi/cell tiles to co-exist with provider model)
         mHandler.setMobileDataIndicators(indicators);
         waitForCallbacks();
 

@@ -307,7 +307,11 @@ public class ShadeCarrierGroupControllerTest extends LeakCheckedTest {
         MobileDataIndicators indicators = new MobileDataIndicators(
                 mock(IconState.class),
                 mock(IconState.class),
+<<<<<<< HEAD
                 0, 0, true, true, 0, "", "", "", 0, true, true);
+=======
+                0, 0, true, true, "", "", "", 0, true, true, true);
+>>>>>>> a1d067647f63 (SystemUI: Allow Wi-Fi/cell tiles to co-exist with provider model)
         mSignalCallback.setMobileDataIndicators(indicators);
     }
 
