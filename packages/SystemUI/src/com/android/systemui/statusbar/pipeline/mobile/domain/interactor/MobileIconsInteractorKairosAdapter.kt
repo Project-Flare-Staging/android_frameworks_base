@@ -104,6 +104,10 @@ constructor(
         kairosInteractor.isStackable
             .toColdConflatedFlow(kairosNetwork)
             .stateIn(scope, SharingStarted.WhileSubscribed(), false)
+    override val isRoamingForceHidden: Flow<Boolean> =
+        kairosInteractor.isRoamingForceHidden
+            .toColdConflatedFlow(kairosNetwork)
+            .stateIn(scope, SharingStarted.WhileSubscribed(), false)
     override val activeMobileDataSubscriptionId: StateFlow<Int?>
         get() = repo.activeMobileDataSubscriptionId
     override val activeDataConnectionHasDataEnabled: StateFlow<Boolean> =
@@ -183,6 +187,7 @@ constructor(
             override val isSingleCarrier: Flow<Boolean> = latest { isSingleCarrier }
             override val isRoaming: Flow<Boolean> = latest { isRoaming }
             override val isForceHidden: Flow<Boolean> = latest { isForceHidden }
+            override val isRoamingForceHidden: Flow<Boolean> = latest { isRoamingForceHidden }
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
 
             override val isConnectionFailed = latest { isConnectionFailed }

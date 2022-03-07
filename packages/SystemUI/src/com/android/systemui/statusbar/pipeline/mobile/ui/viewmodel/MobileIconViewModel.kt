@@ -64,6 +64,7 @@ interface MobileIconViewModelCommon {
     val icon: Flow<SignalIconModel>
     val contentDescription: Flow<MobileContentDescription?>
     val roaming: Flow<Boolean>
+    val isRoamingVisible: Flow<Boolean>
     /** The RAT icon (LTE, 3G, 5G, etc) to be displayed. Null if we shouldn't show anything */
     val networkTypeIcon: Flow<Icon.Resource?>
     /** The slice attribution. Drawn as a background layer */
@@ -135,6 +136,10 @@ class MobileIconViewModel(
     override val contentDescription: Flow<MobileContentDescription?> =
         vmProvider.flatMapLatest { it.contentDescription }
     override val roaming: Flow<Boolean> = vmProvider.flatMapLatest { it.roaming }
+
+    override val isRoamingVisible: Flow<Boolean> =
+        vmProvider.flatMapLatest { it.isRoamingVisible }
+
     override val networkTypeIcon: Flow<Icon.Resource?> =
         vmProvider.flatMapLatest { it.networkTypeIcon }
     override val networkTypeBackground: StateFlow<Icon.Resource?> =
@@ -170,6 +175,7 @@ private class CarrierBasedSatelliteViewModelImpl(
     override val contentDescription: Flow<MobileContentDescription?> = MutableStateFlow(null)
     /** These fields are not used for satellite icons currently */
     override val roaming: Flow<Boolean> = flowOf(false)
+    override val isRoamingVisible: Flow<Boolean> = flowOf(false)
     override val networkTypeIcon: Flow<Icon.Resource?> = flowOf(null)
     override val networkTypeBackground: StateFlow<Icon.Resource?> = MutableStateFlow(null)
     override val activityInVisible: Flow<Boolean> = flowOf(false)
@@ -340,7 +346,6 @@ private class CellularIconViewModel(
             .stateIn(scope, SharingStarted.WhileSubscribed(), false)
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
 
-
     override val volteId =
         combine (
                 iconInteractor.imsInfo,
@@ -375,6 +380,18 @@ private class CellularIconViewModel(
         }
         .distinctUntilChanged()
         .stateIn(scope, SharingStarted.WhileSubscribed(), false)
+
+    override val isRoamingVisible: StateFlow<Boolean> =
+        combine(
+                roaming,
+                iconInteractor.isRoamingForceHidden
+            ) { isRoaming, isHidden ->
+                // If it's force hidden, just hide.
+                // Otherwise follow roaming state
+                isRoaming && !isHidden
+            }
+            .distinctUntilChanged()
+            .stateIn(scope, SharingStarted.WhileSubscribed(), false)
 
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
     private val activity: Flow<DataActivityModel?> =
