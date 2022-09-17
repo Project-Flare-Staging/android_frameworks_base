@@ -58,11 +58,13 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.net.ConnectivityManager;
+import android.net.INetworkPolicyListener;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 // QTI_BEGIN: 2023-06-25: Telephony: Add an additional mobile data button support for dual data
 import android.net.Uri;
 // QTI_END: 2023-06-25: Telephony: Add an additional mobile data button support for dual data
+import android.net.NetworkPolicyManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -120,6 +122,7 @@ import com.android.systemui.statusbar.policy.FiveGServiceClient;
 import com.android.systemui.statusbar.policy.FiveGServiceClient.FiveGServiceState;
 import com.android.systemui.statusbar.policy.FiveGServiceClient.IFiveGStateListener;
 // QTI_END: 2024-06-06: Android_UI: Add 5G override for internet dialog
+import com.android.systemui.statusbar.policy.HotspotController;
 import com.android.systemui.statusbar.policy.KeyguardStateController;
 import com.android.systemui.statusbar.policy.LocationController;
 import com.android.systemui.toast.SystemUIToast;
@@ -255,6 +258,9 @@ public class InternetDetailsContentController implements AccessPointController.A
 // QTI_END: 2022-11-22: Telephony: Add DDS cases's handling for DSDA
     private boolean mIsMobileDataEnabled = false;
 
+    private final HotspotController mHotspotController;
+    private final NetworkPolicyManager mPolicyManager;
+
     @VisibleForTesting
     Map<Integer, ServiceState> mSubIdServiceState = new HashMap<>();
     @VisibleForTesting
@@ -362,6 +368,26 @@ public class InternetDetailsContentController implements AccessPointController.A
                 }
             };
 
+    private final HotspotController.Callback mHotspotCallback =
+            new HotspotController.Callback() {
+                @Override
+                public void onHotspotChanged(boolean enabled, int numDevices) {
+                    mCallback.onHotspotChanged();
+                }
+
+                @Override
+                public void onHotspotAvailabilityChanged(boolean available) {
+                    mCallback.onHotspotChanged();
+                }
+            };
+
+    private final INetworkPolicyListener mPolicyListener = new NetworkPolicyManager.Listener() {
+        @Override
+        public void onRestrictBackgroundChanged(final boolean isDataSaving) {
+            mCallback.onHotspotChanged();
+        }
+    };
+
     protected List<SubscriptionInfo> getSubscriptionInfo() {
         return mKeyguardUpdateMonitor.getFilteredSubscriptionInfo();
     }
@@ -381,6 +407,7 @@ public class InternetDetailsContentController implements AccessPointController.A
             LocationController locationController,
             DialogTransitionAnimator dialogTransitionAnimator,
             WifiStateWorker wifiStateWorker,
+            HotspotController hotspotController,
 // QTI_BEGIN: 2022-12-13: Android_UI: SystemUI: Display combined carrier names
             FeatureFlags featureFlags,
             CarrierNameCustomization carrierNameCustomization
@@ -418,6 +445,8 @@ public class InternetDetailsContentController implements AccessPointController.A
         mDialogTransitionAnimator = dialogTransitionAnimator;
         mConnectedWifiInternetMonitor = new ConnectedWifiInternetMonitor();
         mWifiStateWorker = wifiStateWorker;
+        mHotspotController = hotspotController;
+        mPolicyManager = NetworkPolicyManager.from(context);
         mFeatureFlags = featureFlags;
 // QTI_BEGIN: 2022-12-13: Android_UI: SystemUI: Display combined carrier names
         mCarrierNameCustomization = carrierNameCustomization;
@@ -439,6 +468,8 @@ public class InternetDetailsContentController implements AccessPointController.A
         mAccessPointController.addAccessPointCallback(this);
         mBroadcastDispatcher.registerReceiver(mConnectionStateReceiver, mConnectionStateFilter,
                 mExecutor);
+        mHotspotController.addCallback(mHotspotCallback);
+        mPolicyManager.registerListener(mPolicyListener);
         // Listen the subscription changes
         mOnSubscriptionsChangedListener = new InternetOnSubscriptionChangedListener();
         refreshHasActiveSubIdOnDds();
@@ -505,6 +536,8 @@ public class InternetDetailsContentController implements AccessPointController.A
         mConnectivityManager.unregisterNetworkCallback(mConnectivityManagerNetworkCallback);
         mConnectedWifiInternetMonitor.unregisterCallback();
         mCallback = null;
+        mHotspotController.removeCallback(mHotspotCallback);
+        mPolicyManager.unregisterListener(mPolicyListener);
 // QTI_BEGIN: 2024-06-06: Android_UI: Add 5G override for internet dialog
         unregisterFiveGStateMonitor();
 // QTI_END: 2024-06-06: Android_UI: Add 5G override for internet dialog
@@ -1068,6 +1101,12 @@ public class InternetDetailsContentController implements AccessPointController.A
         startActivity(intent, view);
     }
 
+    void launchHotspotSetting(View view) {
+        final Intent intent = new Intent(Settings.ACTION_WIFI_TETHER_SETTING);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent, view);
+    }
+
     /**
      * Enable or disable Wi-Fi.
      *
@@ -1376,6 +1415,30 @@ public class InternetDetailsContentController implements AccessPointController.A
             return false;
         }
         return networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+    }
+
+    boolean isHotspotAvailable() {
+        return mHotspotController.isHotspotSupported();
+    }
+
+    boolean isHotspotEnabled() {
+        return mHotspotController.isHotspotEnabled();
+    }
+
+    boolean isHotspotTransient() {
+        return mHotspotController.isHotspotTransient();
+    }
+
+    int getHotspotNumDevices() {
+        return mHotspotController.getNumConnectedDevices();
+    }
+
+    void setHotspotEnabled(boolean enabled) {
+        mHandler.post(() -> mHotspotController.setHotspotEnabled(enabled));
+    }
+
+    boolean isDataSaverEnabled() {
+        return mPolicyManager.getRestrictBackground();
     }
 
     boolean connect(WifiEntry ap) {
@@ -2102,6 +2165,7 @@ public class InternetDetailsContentController implements AccessPointController.A
         default void onDataEnabledChanged() {}
 // QTI_END: 2025-02-27: Android_UI: SystemUI: Fixed Internet dialog UI issue.
 // QTI_BEGIN: 2024-06-06: Android_UI: Add 5G override for internet dialog
+        void onHotspotChanged();
     }
 
     private class FiveGStateMonitor implements IFiveGStateListener {
