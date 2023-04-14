@@ -456,7 +456,11 @@ public class InternetDetailsContentController implements AccessPointController.A
         mSubIdTelephonyManagerMap.put(mDefaultDataSubId, mTelephonyManager);
         registerInternetTelephonyCallback(mTelephonyManager, mDefaultDataSubId);
         // Listen the connectivity changes
-        mConnectivityManager.registerDefaultNetworkCallback(mConnectivityManagerNetworkCallback);
+        try {
+            mConnectivityManager.registerDefaultNetworkCallback(mConnectivityManagerNetworkCallback);
+        } catch (Exception e) {
+            // Do nothing
+        }
         mCanConfigWifi = canConfigWifi;
         scanWifiAccessPoints();
 // QTI_BEGIN: 2023-03-31: Telephony: Fix internet dialog behaviour during temp DDS switch
