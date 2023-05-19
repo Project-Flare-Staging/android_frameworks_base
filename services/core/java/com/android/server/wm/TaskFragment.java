@@ -1503,6 +1503,9 @@ class TaskFragment extends WindowContainer<WindowContainer> {
             next.launching = true;
 // QTI_END: 2023-05-22: Performance: DSR: Fix broken DSR
 
+        if (!next.translucentWindowLaunch)
+            next.launching = true;
+
         if (DEBUG_SWITCH) Slog.v(TAG_SWITCH, "Resuming " + next);
 
 // QTI_BEGIN: 2021-11-22: Performance: perf: Move ActivityResumeTrigger based on refactored code.
