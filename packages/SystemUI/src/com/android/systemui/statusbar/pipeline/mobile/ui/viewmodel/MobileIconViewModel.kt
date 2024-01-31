@@ -64,7 +64,6 @@ interface MobileIconViewModelCommon {
     val icon: Flow<SignalIconModel>
     val contentDescription: Flow<MobileContentDescription?>
     val roaming: Flow<Boolean>
-    val isRoamingVisible: Flow<Boolean>
     /** The RAT icon (LTE, 3G, 5G, etc) to be displayed. Null if we shouldn't show anything */
     val networkTypeIcon: Flow<Icon.Resource?>
     /** The slice attribution. Drawn as a background layer */
@@ -76,6 +75,7 @@ interface MobileIconViewModelCommon {
     val volteId: Flow<Int>
     val showSignalStrengthIcon: Flow<Boolean>
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
+    val showHd: Flow<Boolean>
 }
 /**
  * View model for the state of a single mobile icon. Each [MobileIconViewModel] will keep watch over
@@ -137,9 +137,6 @@ class MobileIconViewModel(
         vmProvider.flatMapLatest { it.contentDescription }
     override val roaming: Flow<Boolean> = vmProvider.flatMapLatest { it.roaming }
 
-    override val isRoamingVisible: Flow<Boolean> =
-        vmProvider.flatMapLatest { it.isRoamingVisible }
-
     override val networkTypeIcon: Flow<Icon.Resource?> =
         vmProvider.flatMapLatest { it.networkTypeIcon }
     override val networkTypeBackground: StateFlow<Icon.Resource?> =
@@ -155,6 +152,7 @@ class MobileIconViewModel(
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
     override val volteId: Flow<Int> =
         vmProvider.flatMapLatest { it.volteId }
+    override val showHd: Flow<Boolean> = vmProvider.flatMapLatest { it.showHd }
 
     override val showSignalStrengthIcon: Flow<Boolean> =
         vmProvider.flatMapLatest { it.showSignalStrengthIcon }
@@ -175,7 +173,6 @@ private class CarrierBasedSatelliteViewModelImpl(
     override val contentDescription: Flow<MobileContentDescription?> = MutableStateFlow(null)
     /** These fields are not used for satellite icons currently */
     override val roaming: Flow<Boolean> = flowOf(false)
-    override val isRoamingVisible: Flow<Boolean> = flowOf(false)
     override val networkTypeIcon: Flow<Icon.Resource?> = flowOf(null)
     override val networkTypeBackground: StateFlow<Icon.Resource?> = MutableStateFlow(null)
     override val activityInVisible: Flow<Boolean> = flowOf(false)
@@ -187,6 +184,7 @@ private class CarrierBasedSatelliteViewModelImpl(
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Fixed satellite icon display issue.
     override val showSignalStrengthIcon: Flow<Boolean> = flowOf(true)
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Fixed satellite icon display issue.
+    override val showHd: Flow<Boolean> = flowOf(false)
 }
 /** Terrestrial (cellular) icon. */
 @Suppress("EXPERIMENTAL_IS_NOT_ENABLED")
@@ -381,18 +379,6 @@ private class CellularIconViewModel(
         .distinctUntilChanged()
         .stateIn(scope, SharingStarted.WhileSubscribed(), false)
 
-    override val isRoamingVisible: StateFlow<Boolean> =
-        combine(
-                roaming,
-                iconInteractor.isRoamingForceHidden
-            ) { isRoaming, isHidden ->
-                // If it's force hidden, just hide.
-                // Otherwise follow roaming state
-                isRoaming && !isHidden
-            }
-            .distinctUntilChanged()
-            .stateIn(scope, SharingStarted.WhileSubscribed(), false)
-
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
     private val activity: Flow<DataActivityModel?> =
         if (!constants.shouldShowActivityConfig) {
@@ -424,4 +410,30 @@ private class CellularIconViewModel(
                 && mode.mobileDataEnabled && (mode.dataRoamingEnabled || !mode.isRoaming))
     }
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
+
+    private val showVoWifi: StateFlow<Boolean> =
+        combine(
+                iconInteractor.isVoWifi,
+                iconInteractor.isVoWifiForceHidden
+            ) { isVoWifi, isHidden ->
+                // If it's force hidden, just hide.
+                // Otherwise follow VoWifi state
+                isVoWifi && !isHidden
+            }
+            .distinctUntilChanged()
+            .stateIn(scope, SharingStarted.WhileSubscribed(), false)
+
+    override val showHd: StateFlow<Boolean> =
+        combine(
+                iconInteractor.isMobileHd,
+                iconInteractor.isMobileHdForceHidden,
+                showVoWifi,
+            ) { isHd, isHidden, voWifi ->
+                // If it's force hidden or VoWifi available, just hide.
+                // Otherwise follow HD state
+                isHd && !(isHidden || voWifi)
+            }
+            .distinctUntilChanged()
+            .stateIn(scope, SharingStarted.WhileSubscribed(), false)
+
 }

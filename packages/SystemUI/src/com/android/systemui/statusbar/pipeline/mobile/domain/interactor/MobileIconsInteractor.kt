@@ -38,6 +38,7 @@ import com.android.systemui.log.table.logDiffsForTable
 import com.android.systemui.statusbar.core.NewStatusBarIcons
 import com.android.systemui.statusbar.core.StatusBarRootModernization
 import com.android.systemui.statusbar.pipeline.dagger.MobileSummaryLog
+import com.android.systemui.statusbar.pipeline.ims.data.repository.CommonImsRepository
 import com.android.systemui.statusbar.pipeline.mobile.data.model.SubscriptionModel
 import com.android.systemui.statusbar.pipeline.mobile.data.repository.MobileConnectionRepository
 import com.android.systemui.statusbar.pipeline.mobile.data.repository.MobileConnectionsRepository
@@ -129,6 +130,10 @@ interface MobileIconsInteractor {
     val isForceHidden: Flow<Boolean>
     /** True if we're configured to force-hide the roaming and false otherwise. */
     val isRoamingForceHidden: Flow<Boolean>
+    /** True if we're configured to force-hide the hd (VoLTE/VoNR) and false otherwise. */
+    val isMobileHdForceHidden: Flow<Boolean>
+    /** True if we're configured to force-hide the hd (VoLTE/VoNR) and false otherwise. */
+    val isVoWifiForceHidden: Flow<Boolean>
     /**
      * True if the device-level service state (with -1 subscription id) reports emergency calls
      * only. This value is only useful when there are no other subscriptions OR all existing
@@ -169,6 +174,7 @@ constructor(
     connectivityRepository: ConnectivityRepository,
     userSetupRepo: UserSetupRepository,
     @Background private val scope: CoroutineScope,
+    commonImsRepo: CommonImsRepository,
     private val context: Context,
     private val featureFlagsClassic: FeatureFlagsClassic,
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
@@ -426,6 +432,14 @@ constructor(
         connectivityRepository.forceHiddenSlots
             .map { it.contains(ConnectivitySlot.ROAMING) }
             .stateIn(scope, SharingStarted.WhileSubscribed(), false)
+    override val isMobileHdForceHidden: Flow<Boolean> =
+        commonImsRepo.imsIconState
+            .map { !it.showHdIcon }
+            .stateIn(scope, SharingStarted.WhileSubscribed(), true)
+    override val isVoWifiForceHidden: Flow<Boolean> =
+        commonImsRepo.imsIconState
+            .map { !it.showVowifiIcon }
+            .stateIn(scope, SharingStarted.WhileSubscribed(), true)
     override val isDeviceInEmergencyCallsOnlyMode: Flow<Boolean> =
         mobileConnectionsRepo.isDeviceEmergencyCallCapable
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
@@ -488,6 +502,8 @@ constructor(
                 isDefaultConnectionFailed,
                 isForceHidden,
                 isRoamingForceHidden,
+                isMobileHdForceHidden,
+                isVoWifiForceHidden,
                 mobileConnectionsRepo.getRepoForSubId(subId),
                 context,
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
