@@ -1354,7 +1354,7 @@ public class InternetDetailsContentController implements AccessPointController.A
 
 // QTI_END: 2023-03-31: Telephony: Fix internet dialog behaviour during temp DDS switch
     public boolean isDeviceLocked() {
-        return !mKeyguardStateController.isUnlocked();
+        return false;
     }
 
     boolean activeNetworkIsCellular() {
