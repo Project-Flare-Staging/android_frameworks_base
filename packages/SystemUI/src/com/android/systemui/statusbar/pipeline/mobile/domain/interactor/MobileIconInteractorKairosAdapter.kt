@@ -57,6 +57,10 @@ fun BuildScope.MobileIconInteractorKairosAdapter(
             isRoaming = isRoaming.toStateFlow(),
             isForceHidden = isForceHidden.toColdConflatedFlow(kairosNetwork),
 	    isRoamingForceHidden = isRoamingForceHidden.toColdConflatedFlow(kairosNetwork),
+            isMobileHd = isMobileHd.toStateFlow(),
+            isMobileHdForceHidden = isMobileHdForceHidden.toColdConflatedFlow(kairosNetwork),
+            isVoWifi = isVoWifi.toStateFlow(),
+            isVoWifiForceHidden = isVoWifiForceHidden.toColdConflatedFlow(kairosNetwork),
             isAllowedDuringAirplaneMode = isAllowedDuringAirplaneMode.toStateFlow(),
             carrierNetworkChangeActive = carrierNetworkChangeActive.toStateFlow(),
         )
@@ -81,6 +85,10 @@ private class MobileIconInteractorKairosAdapter(
     override val isRoaming: StateFlow<Boolean>,
     override val isForceHidden: Flow<Boolean>,
     override val isRoamingForceHidden: Flow<Boolean>,
+    override val isMobileHd: StateFlow<Boolean>,
+    override val isMobileHdForceHidden: Flow<Boolean>,
+    override val isVoWifi: StateFlow<Boolean>,
+    override val isVoWifiForceHidden: Flow<Boolean>,
     override val isAllowedDuringAirplaneMode: StateFlow<Boolean>,
     override val carrierNetworkChangeActive: StateFlow<Boolean>,
 // QTI_BEGIN: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1

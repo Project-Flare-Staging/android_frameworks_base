@@ -189,13 +189,13 @@ interface MobileIconInteractor {
     val customizedNetworkName: Flow<NetworkNameModel>
 // QTI_END: 2025-04-15: Android_UI: SystemUI: Readapt Mobile Icon Features For Kairos part 1
     /** True when VoLTE/VONR available */
-    val isMobileHd: StateFlow<Boolean>
+    val isMobileHd: Flow<Boolean>
 
     /** See [MobileIconsInteractor.isMobileHdForceHidden]. */
     val isMobileHdForceHidden: Flow<Boolean>
 
     /** True when VoWifi available */
-    val isVoWifi: StateFlow<Boolean>
+    val isVoWifi: Flow<Boolean>
 
     /** See [MobileIconsInteractor.isVoWifiForceHidden]. */
     val isVoWifiForceHidden: Flow<Boolean>
