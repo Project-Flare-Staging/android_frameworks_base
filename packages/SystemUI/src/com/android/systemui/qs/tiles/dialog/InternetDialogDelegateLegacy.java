@@ -84,10 +84,10 @@ import android.view.ViewStub;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import com.android.settingslib.Utils;
 
@@ -205,22 +205,22 @@ public class InternetDialogDelegateLegacy implements
     private TextView mMobileTitleText;
     private TextView mMobileSummaryText;
     private TextView mAirplaneModeSummaryText;
-    private Switch mMobileDataToggle;
+    private CompoundButton mMobileDataToggle;
 // QTI_BEGIN: 2023-06-25: Telephony: Add an additional mobile data button support for dual data
-    private Switch mSecondaryMobileDataToggle;
+    private CompoundButton mSecondaryMobileDataToggle;
 // QTI_END: 2023-06-25: Telephony: Add an additional mobile data button support for dual data
     private View mMobileToggleDivider;
     private View mMobileConnectedSpace;
     private LinearLayout mFivegLayout;
     private ImageView mFivegIcon;
     private TextView mFivegTitleText;
-    private Switch mFivegToggle;
+    private CompoundButton mFivegToggle;
     private View mFivegToggleDivider;
     private ImageView mHotspotIcon;
     private TextView mHotspotTitleText;
     private TextView mHotspotSummaryText;
-    private Switch mHotspotToggle;
-    private Switch mWiFiToggle;
+    private CompoundButton mHotspotToggle;
+    private CompoundButton mWiFiToggle;
     private View mWifiConnectedSpace;
     private Button mDoneButton;
 
@@ -1427,7 +1427,7 @@ public class InternetDialogDelegateLegacy implements
 // QTI_END: 2023-04-28: Telephony: Use the new API to check if the device is roaming
 // QTI_BEGIN: 2023-06-25: Telephony: Add an additional mobile data button support for dual data
 
-        final Switch mobileDataToggle = (subId == mDefaultDataSubId)
+        final CompoundButton mobileDataToggle = (subId == mDefaultDataSubId)
                 ? mMobileDataToggle : mSecondaryMobileDataToggle;
 // QTI_END: 2023-06-25: Telephony: Add an additional mobile data button support for dual data
         mAlertDialog = new AlertDialog.Builder(context)
