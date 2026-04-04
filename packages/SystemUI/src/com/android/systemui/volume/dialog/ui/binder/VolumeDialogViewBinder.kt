@@ -186,7 +186,7 @@ constructor(
      */
     private fun View.applyAnimationProgress(fraction: Float) {
         alpha = ceil(fraction)
-        if (display.rotation == RotationPolicy.getNaturalRotation()) {
+        if (display.rotation == RotationPolicy.NATURAL_ROTATION) {
                 if (isLayoutRtl) {
                     -1
                 } else {

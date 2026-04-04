@@ -234,6 +234,7 @@ java_library_static {
         "netd-client",
         "motorola.hardware.health-V1.0-java",
         "overlayable_policy_aidl-java",
+        "SurfaceFlingerProperties",
         "com.android.sysprop.watchdog",
         "securebox",
 // QTI_BEGIN: 2019-06-24: Core: Inform Servicetracker HAL about Service Lifecycle events
